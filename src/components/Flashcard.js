@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { updateCardAfterReview } from '../utils/spacedRepetition';
 
-const Flashcard = ({ card, onCardReviewed }) => {
+const Flashcard = ({ card, onCardReviewed, onShowLesson }) => {
   const [flipped, setFlipped] = useState(false);
   const [reviewed, setReviewed] = useState(false);
   
@@ -17,6 +17,21 @@ const Flashcard = ({ card, onCardReviewed }) => {
     onCardReviewed(updatedCard);
   };
   
+  const handleShowLesson = () => {
+    // Mark the card as incorrect with hard difficulty
+    const updatedCard = updateCardAfterReview(card, false, 'hard');
+    // Add lessonShown flag
+    updatedCard.lessonShown = true;
+    setReviewed(true);
+    
+    // Request to show the lesson directly
+    if (onShowLesson) {
+      onShowLesson(updatedCard);
+    } else {
+      onCardReviewed(updatedCard);
+    }
+  };
+  
   return (
     <div className={`flashcard-container ${reviewed ? 'reviewed' : ''}`}>
       <div 
@@ -27,7 +42,18 @@ const Flashcard = ({ card, onCardReviewed }) => {
           <h3>Question:</h3>
           <p>{card.question}</p>
           {!flipped && !reviewed && (
-            <div className="instruction">Click to reveal answer</div>
+            <div className="instruction-container">
+              <div className="instruction">Click to reveal answer</div>
+              <button 
+                className="show-lesson-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShowLesson();
+                }}
+              >
+                Go to Lesson
+              </button>
+            </div>
           )}
         </div>
         

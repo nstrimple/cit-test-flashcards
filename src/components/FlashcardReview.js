@@ -19,19 +19,34 @@ const FlashcardReview = ({ cards, onUpdateCards }) => {
   }, [cards]);
   
   const handleCardReviewed = (updatedCard) => {
-    // Create a copy of all cards and replace the reviewed card
-    const updatedCards = cards.map(card => 
-      card.id === updatedCard.id ? updatedCard : card
-    );
-    
     // Check if the card needs a lesson (too many wrong answers)
     if (needsLesson(updatedCard) && !updatedCard.lessonShown) {
+      // Create a modified card with lessonShown set to true
+      const cardWithLesson = {
+        ...updatedCard,
+        lessonShown: true
+      };
+      
+      // Create a copy of all cards and replace the reviewed card
+      const updatedCards = cards.map(card => 
+        card.id === cardWithLesson.id ? cardWithLesson : card
+      );
+      
+      // Update the cards in the parent component
+      onUpdateCards(updatedCards);
+      
+      // Show the lesson
       const lesson = generateTwilightLesson(updatedCard);
       setCurrentLesson(lesson);
-      
-      // Mark that we've shown a lesson for this card
-      updatedCard.lessonShown = true;
     } else {
+      // Create a copy of all cards and replace the reviewed card
+      const updatedCards = cards.map(card => 
+        card.id === updatedCard.id ? updatedCard : card
+      );
+      
+      // Update the cards in the parent component
+      onUpdateCards(updatedCards);
+      
       // Move to the next card
       setTimeout(() => {
         const nextIndex = currentCardIndex + 1;
@@ -42,9 +57,6 @@ const FlashcardReview = ({ cards, onUpdateCards }) => {
         }
       }, 1500);
     }
-    
-    // Update the cards in the parent component
-    onUpdateCards(updatedCards);
   };
   
   const handleCloseLesson = () => {
@@ -102,7 +114,8 @@ const FlashcardReview = ({ cards, onUpdateCards }) => {
     <div className="flashcard-review">
       <div className="progress-bar">
         <div 
-          className="progress" 
+          className="progress"
+          data-testid="progress-bar-fill"
           style={{ width: `${(currentCardIndex / dueCards.length) * 100}%` }}
         ></div>
       </div>
@@ -115,6 +128,17 @@ const FlashcardReview = ({ cards, onUpdateCards }) => {
         <Flashcard 
           card={dueCards[currentCardIndex]} 
           onCardReviewed={handleCardReviewed}
+          onShowLesson={(updatedCard) => {
+            // Update card in parent component
+            const updatedCards = cards.map(card => 
+              card.id === updatedCard.id ? updatedCard : card
+            );
+            onUpdateCards(updatedCards);
+            
+            // Show the lesson
+            const lesson = generateTwilightLesson(updatedCard);
+            setCurrentLesson(lesson);
+          }}
         />
       )}
     </div>
